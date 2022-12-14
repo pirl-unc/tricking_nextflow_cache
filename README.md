@@ -12,28 +12,34 @@ Before we discuss the technical aspects of intermediate file cleaning, let's fur
 
 Consider the following workflow and its associated files:
 
-<img src=https://user-images.githubusercontent.com/118382/207710329-95c32d2d-7869-4363-bb43-3566db75290c.png width=512 height=426 class="center"/>
-
+<p align="center">
+<img src=https://user-images.githubusercontent.com/118382/207710329-95c32d2d-7869-4363-bb43-3566db75290c.png width=512 height=426/>
+</p>
 
 In this case, we are only required to retain the first (raw FASTQs) and last (fully processed BAMs) files for the purposes of reproducibility and to satisfy downstream workflow inputs, respectively. Nevertheless, Nextflow in its current form requires the four intermediate files (which are only used as input and output once) to be available on the filesystem for workflow caching to perform as expected.
 
 Now consider the following workflows and its associated files.
 
-<img src=https://user-images.githubusercontent.com/118382/207710419-ea163537-a738-4a4d-8fc2-176c5d5f1464.png width=512 height=426 class="center"/>
-
+<p align="center">
+<img src=https://user-images.githubusercontent.com/118382/207710419-ea163537-a738-4a4d-8fc2-176c5d5f1464.png width=512 height=426/>
+</p>
 
 Allowing for intermediates to be deleted results in a 75% reduction in storage requirements for the same eventual workflow outcome. This allows for more samples to be processed using the same storage with less downtime resulting from storage maintenance. This optimization can be taken to the extreme by having the fully processed BAM deleted once your workflow generates its final outputs (e.g. transcript counts, VCFs, etc.). There, of course, are trade-offs to this strategy which we'll discuss in the Limitations and Pitfalls section.
 
 ## How?
 In a nutshell, the GEMmaker strategy works by creating a near zero sized file that resembles the original file closely enough that Nextflow cannot tell the difference. The bash script which performs this action can be found here: https://github.com/SystemsGenetics/GEMmaker/blob/master/bin/clean_work_files.sh. Briefly, the script `stat`s the file, records its findings, creates a [sparse file](https://en.wikipedia.org/wiki/Sparse_file) and modifies the sparse file's logical size, modification time, and access time to reflect those of the original file. The result is an indistinguishable (by Nextflow, anyways) file to serve as a placeholder for your previously large intermediate file.
 
-<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png class="center"/>
-
+<p align="center">
+<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png/>
+</p>
+  
 ## When?
 Hopefully by this point one can appreciate the value of the modified sparse file when it comes to running large scale Nextflow workflows. It may be tempting to want to apply this hammer to all of the nails in your workflows. Unfortunately, every rose has its thorns and that saying applies in this scenario as well. Specifically, the timing of this cleaning process is relatively delicate as any downstream processes or workflows that utilize the cleanable intermediate files must have completed. If your workflows do not account for this and prematurely deletes the intermediate files, then your downstream processes will fail and you will be stuck re-running a portion of your workflow after debugging the cause. 
 
-<img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426 class="center"/>
-
+<p align="center">
+<img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426/>
+</p>
+  
 The next aspect of "when?" is more philosophical -- is it better to delete as soon as possible or is it better to delete at the end of the workflow when all of your endpoint files are available? Should deletion occur within your top-level workflow (as in GEMmaker) or within subworkflows? We'll discuss the pros and cons as well as considerations to these questions in the Limitations and Pitfalls sections.
 
 ## An example
@@ -278,7 +284,9 @@ In this block, we are taking the channel containing the intermediate file we wan
 
 ### Checking for every downstream output
 
-![desired_output_file2](https://user-images.githubusercontent.com/118382/207708364-843ef034-adb7-4279-9d7e-20cdf3eaa49b.png)
+<p align="center">
+<img src=https://user-images.githubusercontent.com/118382/207708364-843ef034-adb7-4279-9d7e-20cdf3eaa49b.png width=512 height=426/>
+</p>
 
 ### Nanoseconds count!
 
