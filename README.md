@@ -12,7 +12,7 @@ Before we discuss the technical aspects of intermediate file cleaning, let's fur
 
 Consider the following workflow and its associated files:
 
-![too_much_storage](https://user-images.githubusercontent.com/118382/207708049-fc7c4131-a6cf-48c3-8f09-1261031043d8.png)
+![too_much_storage](https://user-images.githubusercontent.com/118382/207708049-fc7c4131-a6cf-48c3-8f09-1261031043d8.png){:height="256px" width="256px"}
 
 In this case, we are only required to retain the first (raw FASTQs) and last (fully processed BAMs) files for the purposes of reproducibility and to satisfy downstream workflow inputs, respectively. Nevertheless, Nextflow in its current form requires the four intermediate files (which are only used as input and output once) to be available on the filesystem for workflow caching to perform as expected.
 
