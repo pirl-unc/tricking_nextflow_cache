@@ -27,12 +27,12 @@ Allowing for intermediates to be deleted results in a 75% reduction in storage r
 ## How?
 In a nutshell, the GEMmaker strategy works by creating a near zero sized file that resembles the original file closely enough that Nextflow cannot tell the difference. The bash script which performs this action can be found here: https://github.com/SystemsGenetics/GEMmaker/blob/master/bin/clean_work_files.sh. Briefly, the script `stat`s the file, records its findings, creates a [sparse file](https://en.wikipedia.org/wiki/Sparse_file) and modifies the sparse file's logical size, modification time, and access time to reflect those of the original file. The result is an indistinguishable (by Nextflow, anyways) file to serve as a placeholder for your previously large intermediate file.
 
-<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png class="center"\>
+<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png class="center"/>
 
 ## When?
 Hopefully by this point one can appreciate the value of the modified sparse file when it comes to running large scale Nextflow workflows. It may be tempting to want to apply this hammer to all of the nails in your workflows. Unfortunately, every rose has its thorns and that saying applies in this scenario as well. Specifically, the timing of this cleaning process is relatively delicate as any downstream processes or workflows that utilize the cleanable intermediate files must have completed. If your workflows do not account for this and prematurely deletes the intermediate files, then your downstream processes will fail and you will be stuck re-running a portion of your workflow after debugging the cause. 
 
-<img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426 class="center"\>
+<img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426 class="center"/>
 
 The next aspect of "when?" is more philosophical -- is it better to delete as soon as possible or is it better to delete at the end of the workflow when all of your endpoint files are available? Should deletion occur within your top-level workflow (as in GEMmaker) or within subworkflows? We'll discuss the pros and cons as well as considerations to these questions in the Limitations and Pitfalls sections.
 
