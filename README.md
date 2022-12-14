@@ -150,3 +150,130 @@ include { clean_work_files as clean_sorted_bams } from '../utilities/utilities.n
 ...
 ```
 
+### `clean_work_files.sh`
+
+```
+#!/bin/bash
+# https://raw.githubusercontent.com/SystemsGenetics/GEMmaker/master/bin/clean_work_files.sh
+# This script is meant for cleaning any file in a Nextflow work directory.
+# The $files_list variable is set within the Nextflow process and should
+# contain the list of files that need cleaning. This can be done by creating
+# a channel in a process that creates files, and merging that channel with
+# a signal from another process indicating the files are ready for cleaning.
+#
+# The cleaning process empties the file, converts it to a sparse file so it
+# has an acutal size of zero but appears as the original size, the access
+# and modify times are kept the same.
+files_list="$1"
+
+for file in ${files_list}; do
+  # Remove cruff added by Nextflow
+  file=`echo $file | perl -p -e 's/[\\[,\\]]//g'`
+  if [ -e $file ]; then
+    # Log some info about the file for debugging purposes
+    echo "cleaning $file"
+    stat $file
+    # Get file info: size, access and modify times
+    size=`stat --printf="%s" $file`
+    atime=`stat --printf="%X" $file`
+    mtime=`stat --printf="%Y" $file`
+
+    # Make the file size 0 and set as a sparse file
+    > $file
+    truncate -s $size $file
+    # Reset the timestamps on the file
+    touch -a -d @$atime $file
+    touch -m -d @$mtime $file
+  fi
+done
+```
+
+This file is self-explanitory thanks to its great documentation.
+
+
+### `trick_nextflow_cache.nf`
+
+```
+nextflow.enable.dsl=2
+
+include { clean_work_files } from './utilities.nf'
+
+params.delete_intermediates = ''
+
+process make_a_large_file {
+
+  cache 'lenient'
+
+  output:
+  tuple val("foo"), path("1G_file"), emit: a_large_file
+
+  script:
+  """
+  dd if=/dev/zero of=1G_file bs=1G count=1
+  """
+}
+
+process inspect_large_file {
+
+  cache 'lenient'
+
+  input:
+  tuple val(samp), path(required_input_file)
+
+  output:
+  tuple val(samp), path("file_stats"), emit: file_stats
+
+  script:
+  """
+  ls -ldhrt ${required_input_file} > file_stats
+  """
+}
+
+workflow {
+  make_a_large_file()
+
+  inspect_large_file(
+    make_a_large_file.out.a_large_file)
+
+  make_a_large_file.out.a_large_file                                                                
+    .join(inspect_large_file.out.file_stats, by: [0])                                               
+    .flatten()                                                                                      
+    .filter{ it =~ /_file$/}                                                                        
+    .set{ large_file_done_signal }                                                                  
+
+  if( params.delete_intermediates ) {
+    clean_work_files(
+      large_file_done_signal)
+  }
+}
+```
+
+`trick_nextflow_cache.nf` beings with a shebang, standard inclusion statement (to import the cleaning process), and a parameter definition that we will later use to trigger the intermediate file cleaning. Next are two separate processes, the latter dependent on output from the former. The first process, `make_a_large_file()`, generates a one gigabyte large file which is emitted through the `a_large_file` channel. The second process, `inspect_large_file()`, takes the emittied channel and simply `ls -lhdrt`s it. In this example, you can imagine `make_a_large_file` being an aligner process (e.g. `bwa`) and `inspect_large_file` as being a variant caller (e.g. `stelka2`).
+
+Once `inspect_large_file` has completed, then the actual intermediate large file itself is no longer needed. That is where the following block comes into play:
+
+```
+  make_a_large_file.out.a_large_file                                                                
+    .join(inspect_large_file.out.file_stats, by: [0])                                               
+    .flatten()                                                                                      
+    .filter{ it =~ /_file$/}                                                                        
+    .set{ large_file_done_signal }  
+  ...
+    if( params.delete_intermediates ) {                                                               
+    clean_work_files(                                                                               
+      large_file_done_signal)                                                                       
+  } 
+```
+
+In this block, we are taking the channel containing the intermediate file we want to delete (the 1 Gb file), `join`ing it to the channel containing the output file we generated (`file_stats`). Note that we are joining them on the 0th element which is the `samp` variable. While less relevant to our minimal example, we want to ensure that the intermediate file we're seeking to delete and the corresponding output file are _linked_ by a sample-level identifier. Once we have the joined tuple, we `flatten()` it and `filter{}` each element for the intermediate file suffix we are seeking to delete (`_file$` in this case). We then pass this new tuple of deletable intermediates to `clean_work_files()` assuming `params.delete_intermediates` is true.
+
+# Limitations and Pitfalls
+
+### Limits workflow expansion
+
+### Checking for every downstream output
+
+### Nanoseconds count!
+
+### Target the *file*, _not_ the file's *symlink*
+
