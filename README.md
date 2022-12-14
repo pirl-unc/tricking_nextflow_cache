@@ -30,7 +30,7 @@ Allowing for intermediates to be deleted results in a 75% reduction in storage r
 In a nutshell, the GEMmaker strategy works by creating a near zero sized file that resembles the original file closely enough that Nextflow cannot tell the difference. The bash script which performs this action can be found here: https://github.com/SystemsGenetics/GEMmaker/blob/master/bin/clean_work_files.sh. Briefly, the script `stat`s the file, records its findings, creates a [sparse file](https://en.wikipedia.org/wiki/Sparse_file) and modifies the sparse file's logical size, modification time, and access time to reflect those of the original file. The result is an indistinguishable (by Nextflow, anyways) file to serve as a placeholder for your previously large intermediate file.
 
 <p align="center">
-<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png/>
+<img src=https://user-images.githubusercontent.com/118382/207708182-c095ae95-41fc-41a8-bdf6-ff168d9d36c3.png />
 </p>
   
 ## When?
