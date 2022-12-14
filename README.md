@@ -12,13 +12,15 @@ Before we discuss the technical aspects of intermediate file cleaning, let's fur
 
 Consider the following workflow and its associated files:
 
-![too_much_storage](https://user-images.githubusercontent.com/118382/207708049-fc7c4131-a6cf-48c3-8f09-1261031043d8.png){:height="100px" width="100px"}
+<img src=https://user-images.githubusercontent.com/118382/207710329-95c32d2d-7869-4363-bb43-3566db75290c.png width=256 height=256/>
+
 
 In this case, we are only required to retain the first (raw FASTQs) and last (fully processed BAMs) files for the purposes of reproducibility and to satisfy downstream workflow inputs, respectively. Nevertheless, Nextflow in its current form requires the four intermediate files (which are only used as input and output once) to be available on the filesystem for workflow caching to perform as expected.
 
 Now consider the following workflows and its associated files.
 
-![too_much_storage2](https://user-images.githubusercontent.com/118382/207707946-4e6296b5-ecd7-4fcf-b569-7bcd0ad08625.png)
+<img src=https://user-images.githubusercontent.com/118382/207710419-ea163537-a738-4a4d-8fc2-176c5d5f1464.png width=256 height=256/>
+
 
 Allowing for intermediates to be deleted results in a 75% reduction in storage requirements for the same eventual workflow outcome. This allows for more samples to be processed using the same storage with less downtime resulting from storage maintenance. This optimization can be taken to the extreme by having the fully processed BAM deleted once your workflow generates its final outputs (e.g. transcript counts, VCFs, etc.). There, of course, are trade-offs to this strategy which we'll discuss in the Limitations and Pitfalls section.
 
