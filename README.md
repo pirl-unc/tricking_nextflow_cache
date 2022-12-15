@@ -314,7 +314,6 @@ After completing this workflow, you'll have your variant files of interest and y
 Now, let's assume a colleague comes along and suggests also running the latest and greatest `variant_caller_y` (in addition to your original `variant_caller_x`). You include the `variant_caller_y` process call to `workflow` (see below) and re-run the Nextflow:
 
 ```
-```
 process align {
 ...
 }
