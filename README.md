@@ -455,7 +455,7 @@ In this case `1G_file` was effectively passed through `inspect_large_file`, but 
 
 So, what does this matter?
 
-If the workflow developer is not careful and deletes the _symlink_ to `1G_file` (`../work/b1/d1cc88cf2ba4b16eb770d90b09f4aa/1G_file`) rather than the `1G_file` itself (`../work/22/0f975597019f5e81e7561400e3d7b0/1G_file`) then they will not save any space and instead disrupt the caching of their nextflow. The moral of this story is to ensure the channel and element you are targeting with `clean_work_files` is the actual file you want to delete and not a symlink to that file.
+If the workflow developer is not careful and deletes the _symlink_ to `1G_file` (`../work/b1/d1cc88cf2ba4b16eb770d90b09f4aa/1G_file`) rather than the `1G_file` itself (`../work/22/0f975597019f5e81e7561400e3d7b0/1G_file`) then they will not save any space and instead disrupt the caching of their workflow. The moral of this story is to ensure the channel and element you are targeting with `clean_work_files` is the actual file you want to delete and not a symlink to that file.
 
 ## Conclusion
 
