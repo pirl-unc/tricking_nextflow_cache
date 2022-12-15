@@ -317,5 +317,36 @@ After completing this workflow, you'll have your variant files of interest and y
 
 ### Nanoseconds count!
 
+Original `stat` output prior to cleaning (from `.command.log` of 
+```
+[spvensko@c6145-2-9 dd915decbfc0f0992acd0454f7e14f]$ cat .command.log 
+cleaning /PATH/TO/work/71/8fb6ae67536c55ac80815da9c4a231/a_fastq_2.trimmed.fq.gz
+  File: ‘/PATH/TO/work/71/8fb6ae67536c55ac80815da9c4a231/a_fastq_2.trimmed.fq.gz’
+  Size: 4891699623      Blocks: 9591736    IO Block: 65536  regular file
+Device: 31h/49d Inode: 9248463003887304838  Links: 1
+Access: (0644/-rw-r--r--)  Uid: (321499/spvensko)   Gid: ( 3150/vincent_lab)
+Context: system_u:object_r:nfs_t:s0
+Access: 2022-12-14 23:49:37.616634000 -0500
+Modify: 2022-12-15 00:02:27.847675000 -0500
+Change: 2022-12-15 00:02:27.847675000 -0500
+ Birth: -
+ ```
+ 
+ `stat` output of sparse file which replaced the original file.
+ ```
+ [spvensko@c6145-2-9 dd915decbfc0f0992acd0454f7e14f]$ stat /PATH/TO/work/71/8fb6ae67536c55ac80815da9c4a231/a_fastq_2.trimmed.fq.gz      
+  File: ‘/PATH/TO/work/71/8fb6ae67536c55ac80815da9c4a231/a_fastq_2.trimmed.fq.gz’
+  Size: 4891699623      Blocks: 0          IO Block: 65536  regular file
+Device: 31h/49d Inode: 9248463003887304838  Links: 1
+Access: (0644/-rw-r--r--)  Uid: (321499/spvensko)   Gid: ( 3150/vincent_lab)
+Context: system_u:object_r:nfs_t:s0
+Access: 2022-12-14 23:49:37.000000000 -0500
+Modify: 2022-12-15 00:02:27.000000000 -0500
+Change: 2022-12-15 01:21:02.845392000 -0500
+ Birth: -
+ ```
+
+`2022-12-14 23:49:37.616634000 -0500` != `2022-12-14 23:49:37.000000000 -0500`
+
 ### Target the *file*, _not_ the file's *symlink*
 
