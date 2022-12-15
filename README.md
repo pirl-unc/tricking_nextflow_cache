@@ -309,7 +309,10 @@ workflow {
 ```
 
 After completing this workflow, you'll have your variant files of interest and your storage hungry intermediate BAM files will be eliminated as expected. Now, let's assume a colleague comes along and suggests also running the latest and greatest `variant_caller_y` (in addition to your original `variant_caller_x`). You include the `variant_caller_y` process call to `workflow` and re-run the Nextflow only to be greeted with a curious error. What gives?! The deletion of the intermediate BAM file means you can no longer use those BAMS to call variants. Nextflow is unaware that the BAM files are effectively useless since, from its perspective, they are perfectly fine cached files. At this point, you realize you must delete the work directory associated with `align()` and re-run that portion of the workflow.
+
 ### Checking for every downstream output
+
+Another consideration is that one must ensure _all_ downstream processes have performed and completed their work _prior_ to deletion of the intermediate file. This means it is up to the workflow designer to do all of the appropriate process and channel accounting before allowing `clean_work_files` to execute. This could result in some rather beastly `join` that may clutter the code. Luckily, Ben Sherman (@bentsherman) is working on updating Nextflow to do this accounting internally and removing this burden from the owrkflow developer.
 
 <p align="center">
 <img src=https://user-images.githubusercontent.com/118382/207708364-843ef034-adb7-4279-9d7e-20cdf3eaa49b.png width=512 height=426/>
@@ -317,7 +320,9 @@ After completing this workflow, you'll have your variant files of interest and y
 
 ### Nanoseconds count!
 
-Original `stat` output prior to cleaning (from `.command.log` of 
+Astute readers may note my excessive use of the `cache` directive. Inclusion of this directive is required to overcome the next pitfall I encountered. Specifically, it appears the Access and Modify time modications performed on the sparse file by `clean_work_files.sh` are only to the second, but my cluster's filesystem seems to track Access and Modification times down to sub-second resolution. As a result, the sparse file generated did not pass Nextflow's caching sniff test and would result in the process being re-ran (which near-empty sparse files as input). The `cache` directive (when paired with the `'lenient'` option) bypasses this issue by removing the Access and Modify times from the Nextflow caching equation.
+
+Original `stat` output prior to cleaning (from `.command.log`)
 ```
 [spvensko@c6145-2-9 dd915decbfc0f0992acd0454f7e14f]$ cat .command.log 
 cleaning /PATH/TO/work/71/8fb6ae67536c55ac80815da9c4a231/a_fastq_2.trimmed.fq.gz
@@ -346,7 +351,7 @@ Change: 2022-12-15 01:21:02.845392000 -0500
  Birth: -
  ```
 
-`2022-12-14 23:49:37.616634000 -0500` != `2022-12-14 23:49:37.000000000 -0500`
+Notice that the Access time from the original file (`2022-12-14 23:49:37.616634000 -0500` ) is **not** the same as the Access time from the sparse file created by `clean_work_files.sh` (`2022-12-14 23:49:37.000000000 -0500`).
 
 ### Target the *file*, _not_ the file's *symlink*
 
