@@ -46,7 +46,7 @@ The next aspect of "when?" is more philosophical -- is it better to delete as so
 
 ## A Syntax Example
 
-The GEMmaker implementation has been suggested as a potential workaround to commenters in [Nextflow's GitHub Issue #452](https://github.com/nextflow-io/nextflow/issues/452). I attempted to implement this strategy after strong (but understandable) insistence by our sysadmins that I use less storage. I initially found the logic a bit hard to follow (the code is clear, but I am a mere geneticist, not a software engineer!), so I wanted to create a verbose yet minimal example to explain the core logic. The code (`trick_nextflow_cache.nf`, `clean_work_dirs.sh`, and `utilities.nf`) described below can be found on GitHub: https://github.com/pirl-unc/tricking_nextflow_cache
+The GEMmaker implementation has been suggested as a potential workaround to commenters in [Nextflow's GitHub Issue #452](https://github.com/nextflow-io/nextflow/issues/452). I attempted to implement this strategy after strong (but understandable) insistence by our sysadmins that I use less storage. I initially found the logic a bit hard to follow (the code is clear, but I am a mere geneticist, not a software engineer!), so I wanted to create a verbose yet minimal example to explain the core logic. The code (`trick_nextflow_cache.nf`, `clean_work_dirs.sh`, and `utilities.nf`) described below can be found on GitHub: https://github.com/pirl-unc/tricking_nextflow_cache.
 
 First, we'll demonstrate the functionality and then walk through the script.
 
