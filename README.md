@@ -42,7 +42,7 @@ Hopefully one can appreciate the value of the sparse file strategy when applied 
 <img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426/>
 </p>
   
-The next aspect of "when?" is more philosophical -- is it better to delete as soon as possible or is it better to delete at the end of the workflow when all of your endpoint files are available? Should deletion occur within your top-level workflow (as in GEMmaker) or within subworkflows? THis is a topic I've wrestled with while implementing intermediate file deletion in our neoantigen workflow [LENS](https://www.biorxiv.org/content/10.1101/2022.04.01.486738v2) so I have thoughts on ti that I can share in a future blog post assuming there's interest.
+The next aspect of "when?" is more philosophical -- is it better to delete as soon as possible or at the end of the workflow when all of your endpoint files are available? Should deletion occur within your top-level workflow (as in GEMmaker) or sub-workflows? Tgis is a topic I've wrestled with while implementing intermediate file deletion in our neoantigen workflow [LENS](https://www.biorxiv.org/content/10.1101/2022.04.01.486738v2) so I have thoughts on it that I can share in a future blog post assuming there's interest.
 
 ## A Syntax Example
 
