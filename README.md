@@ -20,7 +20,7 @@ Consider the following workflow and its associated files:
 
 In our case, we are only required to retain the first (raw FASTQs) and last (fully processed BAMs) files for the purposes of reproducibility and to satisfy downstream workflow inputs, respectively. Nevertheless, Nextflow in its current form requires the four intermediate files to be available on the filesystem for workflow caching purposes.
 
-Now consider the following workflows and its associated files.
+Now consider the following workflow and its associated files.
 
 <p align="center">
 <img src=https://user-images.githubusercontent.com/118382/207710419-ea163537-a738-4a4d-8fc2-176c5d5f1464.png width=512 height=426/>
