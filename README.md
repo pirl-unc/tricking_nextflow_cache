@@ -4,11 +4,11 @@
 
 Policing storage usage is an unfortunate, but necessary aspect of bioinformatics. This is due to both the relatively large files workflows generate and the sheer number of files associated with a potentially large set of samples. It is easy for this usage to get out of hand in cases where strict controls are not in place. I am, unfortunately, guilty as charged when it comes to the sin of excess storage usage and I attribute most of this usage to Nextflow's picky caching system. 
 
-This problem is not specific to me and my colleagues. In fact, a [Nextflow GitHub issues thread](https://github.com/nextflow-io/nextflow/issues/452) regarding this topic recently celebrated its fifth birthday and Ben Sherman (@bentsherman) has, as of the writing of this post, started laying the ground work to allow Nextflow to utilize temporary intermediate files.
+This problem is not specific to me and my colleagues. A [Nextflow GitHub issues thread](https://github.com/nextflow-io/nextflow/issues/452) regarding this topic recently celebrated its fifth birthday and Ben Sherman (@bentsherman) has, as of the writing of this post, started laying the ground work to allow Nextflow to utilize temporary intermediate files.
 
-Our lab has been tackling storage issues since we started using Nextflow DSL2 way back in November of 2019. We were unable to "trick" Nextflow into caching near-zero sized files despite our best efforts. Luckily, Stephen Ficklin and colleages, authors of GEMmaker, have developed a clever solution to this problem. 
+Our lab has been tackling storage issues since we started using Nextflow DSL2 way back in November 2019. We were unable to "trick" Nextflow into caching near-zero-sized files despite our best efforts. Luckily, Stephen Ficklin and colleagues, authors of GEMmaker, have developed a clever solution to this problem. 
 
-This blog post is to show examples explaining the utility of this approach, to provide a syntactical tutorial showing implementation examples, and to describe limitations and pitfalls I encountered while implementing it. Before we discuss the technical aspects of intermediate file cleaning in Nextflow workflows, let's further elaborate on the need for this functionality.
+This blog post is to show examples explaining the utility of this approach, provide a syntactical tutorial showing implementation examples, and describe the limitations and pitfalls I encountered while implementing it. Before we discuss the technical aspects of intermediate file cleaning in Nextflow workflows, let's further elaborate on the need for this functionality.
 
 ## Why?
 
