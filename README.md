@@ -348,7 +348,7 @@ However, upon running the above code you will be greeted with a curious error. W
 
 ### Checking for every downstream output
 
-Another consideration is that one must ensure _all_ downstream processes have performed and completed their work _prior_ to deletion of the intermediate file. This means it is up to the workflow developer to perform all process and channel accounting before allowing `clean_work_files` to execute. This could result in some rather beastly `join` statements that will clutter the code. Luckily, Ben Sherman (@bentsherman) is working on updating Nextflow to do this accounting internally and removing this burden from the owrkflow developer.
+Another consideration is that one must ensure _all_ downstream processes have performed and completed their work _prior_ to deletion of the intermediate file. In other words, the workflow developer must perform all process and channel accounting before allowing `clean_work_files` to execute. This will likely result in some rather beastly `join` statements that will clutter the code. Luckily, Ben Sherman (@bentsherman) is working on updating Nextflow to do this accounting internally and removing this burden from the owrkflow developer.
 
 <p align="center">
 <img src=https://user-images.githubusercontent.com/118382/207708364-843ef034-adb7-4279-9d7e-20cdf3eaa49b.png width=512 height=426/>
@@ -356,7 +356,7 @@ Another consideration is that one must ensure _all_ downstream processes have pe
 
 ### Nanoseconds count!
 
-Astute readers may note my excessive use of the `cache` directive in my process definitions. Inclusion of this directive is required to overcome the next pitfall I encountered. Specifically, it appears the Access and Modify time modications performed on the sparse file by `clean_work_files.sh` are only to the second, but my cluster's filesystem seems to track Access and Modification times down to sub-second resolution. As a result, the sparse file generated did not pass Nextflow's caching sniff test and would result in the process being re-ran (with sparse files as input). The `cache` directive (when paired with the `'lenient'` option) bypasses this issue by removing the Access and Modify times from the Nextflow caching equation.
+Astute readers may note my excessive use of the `cache` directive in process definitions. Inclusion of this directive is required to overcome the next pitfall I encountered. Specifically, it appears the Access and Modify time modications performed on the sparse file by `clean_work_files.sh` are only to the nearest second, but my cluster's filesystem seems to track Access and Modify times down to sub-second resolution. As a result, the sparse file generated did not pass Nextflow's caching sniff test and results in the process being re-ran (with sparse files as input). The `cache` directive (when paired with the `'lenient'` option) bypasses this issue by removing the Access and Modify times from the Nextflow caching equation.
 
 Original `stat` output prior to cleaning (from `.command.log`)
 ```
@@ -390,7 +390,7 @@ Change: 2022-12-15 01:21:02.845392000 -0500
 Note that the Access time from the original file (`2022-12-14 23:49:37.616634000 -0500` ) is **not** the same as the Access time from the sparse file created by `clean_work_files.sh` (`2022-12-14 23:49:37.000000000 -0500`).
 
 ### Target the *file*, _not_ the file's *symlink*
-The final hurdle I had to overcome was one of misdirection. Nextflow relies heavily upon symlinks when dealing with local cluster filesystems to prevent excessive copying of files among work directories. As a result, it's possible for a channel element containing what appears to be a file's path to instead be a symlink pointing to that original file. Consider the following example:
+The final hurdle I had to overcome was one of misdirection. Nextflow relies heavily upon symlinks when operating on local cluster filesystems to prevent excessive copying of files among work directories. As a result, it's possible for a channel element containing what appears to be a file's path to instead be a symlink pointing to that original file. Consider the following example:
 
 ```
 nextflow.enable.dsl=2
@@ -444,7 +444,7 @@ Launching `real_vs_symlink.nf` [pedantic_wright] - revision: fffa5484af
 [foo, /home/spvensko/tricking_nextflow_cache_example/work/b1/d1cc88cf2ba4b16eb770d90b09f4aa/1G_file, /home/spvensko/tricking_nextflow_cache_example/work/b1/d1cc88cf2ba4b16eb770d90b09f4aa/file_stats]
 ```
 
-Notice that **both** `make_a_large_file`'s and `inspect_large_files`'s emitted channels contain a path to `1G_file`. However, upon closer inspection, we realize one path is the actual file while the other is simply a symlink to the original file:
+Notice that **both** `make_a_large_file()`'s and `inspect_large_files()`'s emitted channels contain a path to `1G_file`. However, upon closer inspection, we realize one path is the actual file while the other is simply a symlink to the original file:
 
 ```
 [spvensko@c6145-2-9 tricking_nextflow_cache_example]$ file /home/spvensko/tricking_nextflow_cache_example/work/22/0f975597019f5e81e7561400e3d7b0/1G_file                                                                                      
@@ -453,7 +453,7 @@ Notice that **both** `make_a_large_file`'s and `inspect_large_files`'s emitted c
 /home/spvensko/tricking_nextflow_cache_example/work/b1/d1cc88cf2ba4b16eb770d90b09f4aa/1G_file: symbolic link to `/home/spvensko/tricking_nextflow_cache_example/work/22/0f975597019f5e81e7561400e3d7b0/1G_file'
 ```
 
-In this case `1G_file` was effectively passed through `inspect_large_file`, but a symlink to the original file was emitted rather than the original file itself.
+In this case `1G_file` was effectively passed through `inspect_large_file()`, but a symlink to the original file was emitted rather than the original file itself.
 
 So, what does this matter?
 
@@ -463,6 +463,6 @@ The moral of this story is to ensure the channel and element you are targeting w
 
 ## Conclusion
 
-I hope this post ishelp in explaining why you may want to delete intermediate files in Nextflow, how to perform intermediate deletion, and some of the limitations and pitfalls associated with this approach.
+I hope this post helps in explaining why users may want to delete intermediate files in Nextflow, how to perform intermediate deletion, and some of the limitations and pitfalls associated with this approach.
 
 Please do not hesitate to contact me with any thoughts or comments at steven_vensko@med.unc.edu or @spvensko on the nextflow.slack.com.
