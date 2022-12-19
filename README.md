@@ -36,7 +36,7 @@ In a nutshell, the GEMmaker strategy works by creating a very small file that re
 </p>
   
 ## When?
-Hopefully by this point one can appreciate the value of the modified sparse file when it comes to running large scale Nextflow workflows. One may also be tempted to apply this hammer to all of the "nails" in their workflows. Unfortunately, every rose has its thorn and that proverb applies in this scenario as well. Specifically, the timing of this cleaning process is relatively delicate as any downstream processes or workflows that utilize the cleanable intermediate files must be completed prior to cleaning. If your workflows do not account for this and prematurely delete the intermediate files, then your downstream processes will fail and you will be stuck re-running a portion of your workflow after debugging the cause. 
+Hopefully one can appreciate the value of the sparse file strategy when applied to running large scale Nextflow workflows. One may be tempted to use this hammer to all of the "nails" in their workflows. Unfortunately, every rose has its thorn. Specifically, the timing of intermediate file cleaning is relatively delicate. Any downstream processes or workflows that utilize the cleanable intermediate files must be completed prior to cleaning or your workflow will fail due to the prematurely deleted intermediate file. User will then be stuck re-running a portion of your workflow after debugging the cause. 
 
 <p align="center">
 <img src=https://user-images.githubusercontent.com/118382/207708286-8e6ff667-71a7-4251-86af-7993cacdec8c.png width=512 height=426/>
