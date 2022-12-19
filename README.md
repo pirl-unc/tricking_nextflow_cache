@@ -260,9 +260,9 @@ workflow {
 }
 ```
 
-`trick_nextflow_cache.nf` begins with a shebang, a standard inclusion statement (to import the cleaning process), and a parameter definition that we will later use to trigger the intermediate file cleaning. Next are two separate processes, the latter dependent on output from the former. The first process, `make_a_large_file()`, generates a one gigabyte large file which is emitted through the `a_large_file` channel. The second process, `inspect_large_file()`, takes the emittied channel and simply `ls -lhdrt`s it. In this example, you can imagine `make_a_large_file` being an aligner process (e.g. `bwa`) and `inspect_large_file` as being a variant caller (e.g. `stelka2`).
+`trick_nextflow_cache.nf` begins with a shebang, a standard inclusion statement (to import the cleaning process), and a parameter definition used for triggering intermediate file deletion. Next are two separate processes, the latter dependent on output from the former. The first process, `make_a_large_file()`, generates a one gigabyte sized file which is emitted through the `a_large_file` channel. The second process, `inspect_large_file()`, takes the emittied channel and simply `ls -lhdrt`s it. In this example, you can imagine `make_a_large_file()` being an aligner process (e.g. `bwa`) and `inspect_large_file()` as being a variant caller (e.g. `stelka2`).
 
-Once the `inspect_large_file` process has completed, the actual intermediate large file itself is no longer needed. That is where the following code block comes into play:
+Once the `inspect_large_file()` process has completed, the actual intermediate large file itself is no longer needed. That is where the following code block comes into play:
 
 ```
   make_a_large_file.out.a_large_file                                                                
@@ -277,14 +277,16 @@ Once the `inspect_large_file` process has completed, the actual intermediate lar
   } 
 ```
 
-In this block, we are taking the channel containing the intermediate file we want to delete (the 1 Gb file), `join`ing it to the channel containing the output file we generated (`file_stats`). Note that we are joining them on the 0th element which is the `samp` variable. While less relevant to our minimal example, we want to ensure that the intermediate file we're seeking to delete and the corresponding output file are _linked_ by a sample-level identifier. Once we have the joined tuple, we `flatten()` it and `filter{}` each element for the intermediate file suffix we are seeking to delete (`_file$` in this case). We then pass this new tuple of deletable intermediates to `clean_work_files()` assuming `params.delete_intermediates` is true. Note: Be as specific as possible with your `filter{}` regex string!!!
+In this block, we are taking the channel containing the intermediate file we want to delete (the 1 Gb file), `join`ing it to the channel containing the eventual endpoint file (`file_stats`). Note we are joining them on the 0th element which is the `samp` variable. We want to ensure that the intermediate file we're deleting and the corresponding output file are _linked_ by a sample-level identifier. Once we have the joined tuple, we `flatten()` it and `filter{}` each element for the intermediate file suffix we are seeking to delete (`_file$` in this case). We then pass this new tuple of deletable intermediates to `clean_work_files()` assuming `params.delete_intermediates` is true. 
+
+***Note: Be as specific as possible with your `filter{}` regex string!!!***
 
 # Limitations and Pitfalls
-I ran into several hurdles when implementing these strategies into our workflows. I've attempted to describe them below in hopes it will help others avoid them. Please let me know of any other examples the community encounters and I'll include them.
+I encountered several hurdles when implementing this strategy into our workflows. I've described them below so others can avoid them. Please let me know of any other examples the community encounters and I'll include them.
 
 ### Limits workflow expansion
 
-This intermediate file deletion strategy, in its current form, should really only be applied to workflows that are well-established end-to-end. Deletion of intermediate files _can_ result in prevention of workflow expansion. For example, consider a scenario in which you have alignment files and are performing variant calling with subsequent BAM cleanup:
+This intermediate file deletion strategy, in its current form, should really only be applied to workflows that are well-established end-to-end. Deletion of intermediate files _will_ result in prevention of workflow expansion. For example, consider a scenario in which you have alignment files and are performing variant calling with subsequent BAM cleanup:
 
 ```
 process align {
@@ -309,9 +311,9 @@ workflow {
 }
 ```
 
-After completing this workflow, you'll have your variant files of interest and your storage hungry intermediate BAM files will be eliminated as expected.
+After completing this workflow, you have your variant files and your storage hungry intermediate BAM files will be eliminated as expected.
 
-Now, let's assume a colleague comes along and suggests also running the latest and greatest `variant_caller_y` (in addition to your original `variant_caller_x`). You include the `variant_caller_y` process call to `workflow` (see below) and re-run the Nextflow:
+Now, let's assume a colleague comes along and suggests also running the latest and greatest `variant_caller_y` (in addition to your original `variant_caller_x`). You include the `variant_caller_y()` process call to `workflow` (see below) and re-run the Nextflow:
 
 ```
 process align {
@@ -342,7 +344,7 @@ workflow {
 }
 ```
 
-However, upon runnign the above code you will be greeted with a curious error. What gives?! The deletion of the intermediate BAM file from the inital run means you can no longer use those BAMS to call variants. Nextflow is unaware that the BAM files are effectively useless since, from its perspective, they are perfectly fine cached files. At this point, you realize you must delete the work directory associated with `align()` and re-run that portion of the workflow.
+However, upon running the above code you will be greeted with a curious error. What gives?! The deletion of the intermediate BAM file from the initial run means you can no longer use those BAMS to call variants. Nextflow is unaware that the BAM files are effectively useless since, from its perspective, they are perfectly fine cached files. At this point, you realize you must delete the work directory associated with `align()` and re-run that portion of the workflow.
 
 ### Checking for every downstream output
 
