@@ -153,7 +153,7 @@ process clean_work_files {
 }
 ```
 
-`utilities.nf` consists of two process -- `clean_work_dirs` and `clean_work_files`. `clean_work_dirs` appears to delete the contents of a work directory while `clean_work_files` targets specific files for deletion. Personally, I have only been using `clean_work_files` within my workflows. I have included these processes into their own module to allow for easy aliasing when including the process into `main.nf`. For example, consider our current example in which we're running a single cleaning process. Defining the cleaning process within `main.nf` wouldn’t be the worst idea in the world. However, once you start cleaning multiple outputs files from multiple processes, having multiple cleaning processes defined in `main.nf` (as opposed to using aliasing while making `include` statements (see below)) get messy fast.
+`utilities.nf` consists of two process - `clean_work_dirs` and `clean_work_files`. `clean_work_dirs` appears to delete the contents of a work directory while `clean_work_files` targets specific files for deletion. Personally, I have only been using `clean_work_files` within my workflows. I have included these processes into their own module to allow for easy aliasing when including the process into `main.nf`. For example, consider our current example in which we're running a single cleaning process. Defining the cleaning process within `main.nf` wouldn’t be the worst idea in the world. However, once you start cleaning multiple outputs files from multiple processes, having multiple cleaning processes defined in `main.nf` (as opposed to using aliasing while making `include` statements (see below)) get messy fast.
 
 ```
 include { clean_work_files as clean_trimmed_fastqs } from '../utilities/utilities.nf'
